@@ -16,27 +16,27 @@ LDLIBS=-lm
 #  $^ viene sostituito con tutti i prerequisiti
 
 # elenco degli eseguibili da creare
-EXECS=contaprimi npipe lettore
+EXECS=contaprimi.out npipe.out lettore.out
 
 # primo target: gli eseguibili sono precondizioni
 # quindi verranno tutti creati
 all: $(EXECS) 
 
-# regole per la creazioni degli eseguibili utilizzando xerrori.o
-contaprimi: contaprimi.o xerrori.o
 
-npipe: npipe.o xerrori.o
+# regola per la creazioni degli eseguibili utilizzando xerrori.o
+%.out: %.o xerrori.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-lettore: lettore.o xerrori.o
 
-# regola per la creazione di xerrori.o
-xerrori.o: xerrori.c xerrori.h
+# regola per la creazione di file oggetto che dipendono da xerrori.h
+%.o: %.c xerrori.h
+	$(CC) $(CFLAGS) -c $<
 
  
 # esempio di target che non corrisponde a una compilazione
 # ma esegue la cancellazione dei file oggetto e degli eseguibili
 clean: 
-	rm *.o $(EXECS)
+	rm -f *.o $(EXECS)
 	
 # crea file zip della lezione	
 zip:
