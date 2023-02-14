@@ -7,7 +7,23 @@ int main(int argc, char *argv[])
     printf("Uso:\n\t%s nome_pipe\n",argv[0]);
     exit(1);
   }
-  
+
+  // crea la named pipe da usare per le comunicazioni
+  int e = mkfifo(argv[1],0666);
+  if(e==0)
+    puts("Named pipe creata");
+  else if(errno== EEXIST)
+    puts("La named pipe esiste già; procedo...");
+  else    
+    xtermina("Errore creazione named pipe",__LINE__,__FILE__);
+
+  // faccio partire il lettore
+  if(xfork(__LINE__,__FILE__)==0) {
+   if(execl("lettore.out", "lettore.out", argv[1], (char *) NULL)==-1)
+     xtermina("exec fallita",__LINE__,__FILE__);
+  }
+
+
   // crea processi scrittori ausiliari
   int n=2; 
   for(int i=0;i<n;i++) {
@@ -37,18 +53,5 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-  // // crea la named pipe da usare per le comunicazioni
-  // int e = mkfifo(argv[1],0666);
-  // if(e==0)
-  //   puts("Named pipe creata");
-  // else if(errno== EEXIST)
-  //   puts("La named pipe esiste già; procedo...");
-  // else    
-  //   xtermina("Errore creazione named pipe",__LINE__,__FILE__);
 
 
-  // faccio partire il lettore
-  //if(xfork(__LINE__,__FILE__)==0) {
-  //  if(execl("lettore", "lettore", argv[1], (char *) NULL)==-1)
-  //    termina("exec fallita");
-  //}

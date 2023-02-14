@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# legge i dati dalla pipe tubo
+# legge i dati dalla pipe passata sulla linea di comando
 
 import sys, os, struct
 
