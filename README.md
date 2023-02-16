@@ -2,5 +2,5 @@
 
 
 
-Questo repository contiene gli esempi fatti a lezione più altro materile utile. Fare riferimento al corso su Moodle per gli argomenti delle singole lezioni e altro materile utile
+Questo repository contiene gli esempi di codice fatti a lezione. Fare riferimento al corso su Moodle per gli argomenti delle singole lezioni e altro materiale utile
 
