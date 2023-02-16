@@ -31,7 +31,7 @@ int main(int argc,char *argv[])
   xftruncate(fd, shm_size, __LINE__,__FILE__);
   int *a = simple_mmap(shm_size,fd, __LINE__,__FILE__);
   close(fd); // dopo mmap e' possibile chiudere il file descriptor
-  xshm_unlink(Nome,__LINE__, __FILE__); // distrugge shm quando finito
+  xshm_unlink(Nome,__LINE__, __FILE__); // prenota distruzione shm quando finito
 
   // creazione processi figlio
   for(int i=0; i<p; i++) {

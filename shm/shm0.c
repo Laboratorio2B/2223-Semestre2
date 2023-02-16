@@ -26,7 +26,7 @@ int main(int argc,char *argv[])
   xftruncate(fd, shm_size, __LINE__,__FILE__);
   int *a = simple_mmap(shm_size,fd, __LINE__,__FILE__);
   close(fd); // dopo mmap e' possibile chiudere il file descriptor
-  // prenoto la cancellazione dell'oggeto nella shared memory 
+  // scommentare per prenotare la cancellazione dell'oggetto nella shared memory 
   // xshm_unlink(Nome,__LINE__, __FILE__); // distrugge shm quando finito
   
   // riempio array
@@ -34,11 +34,10 @@ int main(int argc,char *argv[])
     a[i] = i;
   }
   
-
   // unmap memoria condivisa e termina
   xmunmap(a,shm_size,__LINE__, __FILE__);
   // avendo commentato xshm_unlink() l'oggetto /dev/sham/prova
-  // rimane nel filesystem (e occupa il relativo spazio)
+  // rimane nel filesystem (e occupa il relativo spazio fino al prossimo boot)
   return 0;
 }
 
