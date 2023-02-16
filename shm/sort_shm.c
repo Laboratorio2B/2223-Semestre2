@@ -22,7 +22,7 @@ int main(int argc,char *argv[])
   }
   // conversione input
   int n= atoi(argv[1]);
-  if(n<1) termina("dimensione non valida");
+  if(n<=1) termina("dimensione non valida");
 
   // ---- creazione array memoria condivisa
   int shm_size = n*sizeof(int); // un intero x processo
@@ -36,24 +36,31 @@ int main(int argc,char *argv[])
   srand(1); // iniializza numeri casuali con lo stesso seed
   for(int i=0; i<n; i++) 
     a[i] = rand()%100000;
+  int m = n/2;
+  sleep(20);
 
+  // posso vedere l'array da ordinare in /dev/shm/array
+
+  puts("riprendo...");
 
   // ---- crea processo figlio  
   pid_t pid= xfork(__LINE__, __FILE__);
   if (pid != 0) {
+    qsort(a, m, sizeof(int), cmp);
   }
   else
   { // processo figlio
-
+    qsort(a+m, n-m, sizeof(int), cmp);
     // unmap memoria condivisa perchè ho finito di usarla
     xmunmap(a, shm_size, __LINE__, __FILE__);
     exit(0);
   }
   // genitore aspetta che abbia finito il figlio:
   if(wait(NULL)<0)
-    xtermina("Errore waitpid",__LINE__, __FILE__);
+    xtermina("Errore wait",__LINE__, __FILE__);
     
-  
+  // manca il merge
+
   // unmap memoria condivisa e termina
   xmunmap(a,shm_size,__LINE__, __FILE__);
   return 0;

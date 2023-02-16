@@ -2,7 +2,8 @@
 
 
 // conteggio dei primi con piu' processi utilizzando
-// un array condiviso 
+// un array condiviso che viene utilizzato dai figli
+// per restituire il proprio valore al genitore
 
 
 // nome della shared memory 
@@ -10,8 +11,6 @@
 
 //Prototipi
 bool primo(int n);
-
-
 
 int main(int argc,char *argv[])
 {
@@ -55,8 +54,9 @@ int main(int argc,char *argv[])
   // codice processo padre
   // aspetta che abbiano finito i figli: 
   for(int i=0; i<p; i++)  
-     if(waitpid(salvapid[i],NULL,0)<0)
-       termina("Errore waitpid");
+    // esempio di uso della waitpid, andava bene anche la wait
+    if(waitpid(salvapid[i],NULL,0)<0)
+       xtermina("Errore waitpid",__LINE__, __FILE__);
     
   // calcola e restituisce il risultato 
   int conta = 0;
