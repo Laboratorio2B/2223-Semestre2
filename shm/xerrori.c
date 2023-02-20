@@ -173,3 +173,32 @@ int xsem_unlink(const char *name, int linea, char *file)
   return e;  
 }
 
+int xsem_init(sem_t *sem, int pshared, unsigned int value, int linea, char *file) {
+  int e = sem_init(sem,pshared,value);
+  if(e == -1) {
+    perror("Errore sem_init"); 
+    fprintf(stderr,"== %d == Linea: %d, File: %s\n",getpid(),linea,file);
+    exit(1);
+  }
+  return e;
+}
+
+int xsem_post(sem_t *sem, int linea, char *file) {
+  int e = sem_post(sem);
+  if(e == -1) {
+    perror("Errore sem_post"); 
+    fprintf(stderr,"== %d == Linea: %d, File: %s\n",getpid(),linea,file);
+    exit(1);
+  }
+  return e;
+}
+
+int xsem_wait(sem_t *sem, int linea, char *file) {
+  int e = sem_wait(sem);
+  if(e == -1) {
+    perror("Errore sem_wait"); 
+    fprintf(stderr,"== %d == Linea: %d, File: %s\n",getpid(),linea,file);
+    exit(1);
+  }
+  return e;
+}
