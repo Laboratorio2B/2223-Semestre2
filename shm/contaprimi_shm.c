@@ -44,7 +44,7 @@ int main(int argc,char *argv[])
       int end = (i==p-1) ? m : n*(i+1);
 			a[i]=0;        
       for(int j=start;j<end;j++)
-        if(primo(j)) a[i] += 1;
+        if(primo(j)) a[0] += 1;
       fprintf(stderr,"Processo %d terminato dopo avere trovato %d primi\n",i,a[i]);
       // unmap memoria condivisa perchè ho finito di usarla
       xmunmap(a,shm_size,__LINE__, __FILE__);
