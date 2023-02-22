@@ -33,11 +33,8 @@ int main(int argc, char *argv[])
   close(fd); // dopo mmap e' possibile chiudere il file descriptor
     
   // ---- creo i semafori
-  sem_t *sem_valori = xsem_open(Sommasem,O_CREAT|O_EXCL,0666,1,
-                   __LINE__, __FILE__);
-  sem_t *sem_apertura = xsem_open(Sommasem2,O_CREAT|O_EXCL,0666,0,
-                   __LINE__, __FILE__);
-
+  sem_t *sem1 = xsem_open(Sommasem,O_CREAT|O_EXCL,0666,1,__LINE__, __FILE__);
+  sem_t *sem2 = xsem_open(Sommasem2,O_CREAT|O_EXCL,0666,0,__LINE__, __FILE__);
 
 
   // faccio partire i processi ausiliari
@@ -49,8 +46,8 @@ int main(int argc, char *argv[])
     }
   }
 
-  // quando sono sicuto che i processi ausiliari hanno
-  // aperto shm e sem procedo a prenotare la cancellazione
+  // quando sono sicuro che i processi ausiliari hanno
+  // aperto shm e semafori procedo a prenotare la cancellazione
   xshm_unlink(Sommamem,__LINE__, __FILE__); // distrugge shm quando finito
   xsem_unlink(Sommasem,__LINE__, __FILE__); // distrugge sem quando finito  
   xsem_unlink(Sommasem2,__LINE__, __FILE__); // distrugge sem quando finito
