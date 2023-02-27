@@ -71,7 +71,6 @@ int main(int argc, char *argv[])
 
   // ora che tutti i figli hanno terminato posso stampare il risultato
   printf("Numero primi: %d, Somma: %ld\n",*nump,*sommap);
-  sleep(30);
   // chiude i semafori
   xsem_close(sem1,__LINE__, __FILE__);
   xsem_close(sem2,__LINE__, __FILE__);

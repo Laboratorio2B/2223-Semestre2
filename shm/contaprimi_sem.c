@@ -82,19 +82,26 @@ int main(int argc,char *argv[])
       xmunmap(a,shm_size,__LINE__, __FILE__);
       // segnala al processo padre che questo processo ha finito 
       xsem_post(sem_finito,__LINE__, __FILE__);
-      sleep(3600); // dormo per un'ora
+      // chiude i semafori perché non li usa più 
+      xsem_close(sem_a0,__LINE__, __FILE__);
+      xsem_close(sem_finito,__LINE__, __FILE__);
+      // dormo per un'ora (per mostrare che il genitore non ha bisogno che i figli terminino)
+      sleep(3600); 
       exit(0);
     }
   }
   
   // codice processo padre
-  // aspetta che abbiano finito tutti i figli: 
+  // aspetta che tutti i figli abbiano fatto la post su sem_finito 
   for(int i=0; i<p; i++) 
     xsem_wait(sem_finito,__LINE__, __FILE__);
     
   // calcola e restituisce il risultato 
   printf("Numero primi tra 1 e %d (escluso): %d\n",m,*a);
   
+  // chiude i semafori
+  xsem_close(sem_a0,__LINE__, __FILE__);
+  xsem_close(sem_finito,__LINE__, __FILE__);
   // unmap memoria condivisa e termina
   xmunmap(a,shm_size,__LINE__, __FILE__);
   return 0;
