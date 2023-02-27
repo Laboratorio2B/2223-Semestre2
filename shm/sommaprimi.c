@@ -9,7 +9,7 @@
 #define Sommamem "/sommaprimi"
 #define Sommasem "/sommaprimi"
 #define Sommasem2 "/sommaprimi2"
-
+#define Sommasem3 "/sommaprimi3"
 
 
 
@@ -35,7 +35,10 @@ int main(int argc, char *argv[])
   // ---- creo i semafori
   sem_t *sem1 = xsem_open(Sommasem,O_CREAT|O_EXCL,0666,1,__LINE__, __FILE__);
   sem_t *sem2 = xsem_open(Sommasem2,O_CREAT|O_EXCL,0666,0,__LINE__, __FILE__);
-
+  sem_t *sem3 = xsem_open(Sommasem3,O_CREAT|O_EXCL,0666,0,__LINE__, __FILE__);
+  // inizializzo variabili condivise 
+  *nump = 0;
+  *sommap = 0;
 
   // faccio partire i processi ausiliari
   int aux = argc-1;            // numero processi ausiliari
@@ -48,11 +51,31 @@ int main(int argc, char *argv[])
 
   // quando sono sicuro che i processi ausiliari hanno
   // aperto shm e semafori procedo a prenotare la cancellazione
-  xshm_unlink(Sommamem,__LINE__, __FILE__); // distrugge shm quando finito
-  xsem_unlink(Sommasem,__LINE__, __FILE__); // distrugge sem quando finito  
+  // attendo che i figli abbiano fatto sem_post su sem2
+  for(int i=0;i<aux;i++)
+    xsem_wait(sem2,__LINE__, __FILE__);
+  xshm_unlink(Sommamem,__LINE__, __FILE__);  // distrugge shm quando finito
+  xsem_unlink(Sommasem,__LINE__, __FILE__);  // distrugge sem quando finito  
   xsem_unlink(Sommasem2,__LINE__, __FILE__); // distrugge sem quando finito
+  xsem_unlink(Sommasem3,__LINE__, __FILE__); // distrugge sem quando finito
+
+  // attendo che i processi figli siano terminati
+  // prima possibilità: attendo la terminazione dei figli con wait(2)
+  // for(int i=0;i<aux;i++)
+  //  xwait(NULL,__LINE__, __FILE__);
+  // seconda possibilità: attendo che ogni processo esegua una sem_post(3)
+  // su sem3 per indicare che ha concluso il calcolo 
+  for(int i=0;i<aux;i++)
+    xsem_wait(sem3,__LINE__, __FILE__);
 
 
+  // ora che tutti i figli hanno terminato posso stampare il risultato
+  printf("Numero primi: %d, Somma: %ld\n",*nump,*sommap);
+  sleep(30);
+  // chiude i semafori
+  xsem_close(sem1,__LINE__, __FILE__);
+  xsem_close(sem2,__LINE__, __FILE__);
+  xsem_close(sem3,__LINE__, __FILE__);
 
   fprintf(stderr, "Io %d ho finito.\n",getpid());
   return 0;
