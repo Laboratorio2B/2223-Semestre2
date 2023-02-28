@@ -17,11 +17,11 @@ bool primo(int n);
 
 // struct che uso per passare argomenti ai thread
 typedef struct {
-	int start;   // intervallo dove cercare i primo 
+	int start;      // intervallo dove cercare i primo 
 	int end;
-  sem_t *a0;   // puntatore al semaforo a0x
+  sem_t *a0;      // puntatore al semaforo a0x
   sem_t *finito;  // puntatore al semaforo finitox
-  int *somma;  // puntatore alla somma condivisa 
+  int *somma;     // puntatore alla somma condivisa 
 } dati;
 
 // funzione passata a pthred_create
@@ -29,14 +29,14 @@ void *tbody(void *v) {
 	dati *d = (dati *) v;
 	// cerco i primi nell'intervallo assegnato
 	for(int j=d->start;j<d->end;j++) {
-    if(primo(j)) {
-          // aspetta che il semaforo sia 1
-					xsem_wait(d->a0,__LINE__, __FILE__);
-          *(d->somma) += 1;
-          // riporta il semaforo a 1
-					xsem_post(d->a0,__LINE__, __FILE__);	
+    if (primo(j)) {
+      // aspetta che il semaforo sia 1
+      xsem_wait(d->a0, __LINE__, __FILE__);
+      *(d->somma) += 1;
+      // riporta il semaforo a 1
+      xsem_post(d->a0, __LINE__, __FILE__);
     }
-	}
+  }
   fprintf(stderr,"Il thread che partiva da %d ha terminato\n",d->start);
   // segnala al processo padre che questo processo ha finito 
 	xsem_post(d->finito,__LINE__, __FILE__);
@@ -75,10 +75,16 @@ int main(int argc,char *argv[])
 		d[i].somma = &somma;
     xpthread_create(&t[i], NULL, &tbody, &d[i],__LINE__, __FILE__); 
   }
-  // aspetta che abbiano finito tutti i figli: 
+
+  // aspetta che abbiano finito tutti i thread ausiliari
+  // utilizzando il semaforo sem_finitox
   for(int i=0; i<p; i++) 
 		xsem_wait(&sem_finitox,__LINE__, __FILE__);
-    
+
+  // distrugge i semafor 
+  xsem_destroy(&sem_a0x,__LINE__, __FILE__);  
+  xsem_destroy(&sem_finitox,__LINE__, __FILE__);  
+
   // restituisce il risultato 
   printf("Numero primi tra 1 e %d (escluso): %d\n",m,somma);
 	return 0;

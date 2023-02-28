@@ -2,38 +2,37 @@
 
 // conteggio dei primi con thread multipli
 
-// NOTA: questo programma ha solo interesse didattico!
-// dal punto di vista delle prestazionei è una pessima idea 
-// utilizzare una sola variabile condivisa a cui i thread 
-// accedono continuamente. 
+// Questo programma è più efficiente di contaprimi.c
+// in quanto ogni thread aggiorna il numero dei primi in una 
+// variabile locale e quindi non ci sono conflitti da
+// gestire utilizzando un semaforo
 
-// Inoltre in questo caso i thread ausiliari non fanno altre 
-// operazioni dopo il calcolo dei primi quindi il meccanismo 
-// della join si potrebbe utilizzare per comunicare
-// la terminazione al thread principale
+// La terminazione dei thread ausiliari e attesa mediante
+// pthread_join() e quindi non è necessario l'utilizzo neanhe
+// del secondo semaforo. 
+
 
 //Prototipi
 bool primo(int n);
 
 // struct che uso per passare argomenti ai thread
 typedef struct {
-	int start;   // intervallo dove cercare i primo 
-	int end;     // parametri di input
-    int somma_parziale; // parametro di output
+	int start;            // intervallo dove cercare i primo 
+	int end;              // parametri di input
+  int somma_parziale;   // parametro di output
 } dati;
 
 // funzione passata a pthred_create
 void *tbody(void *v) {
 	dati *d = (dati *) v;
-    int somma = 0;
+  int primi = 0;
 	// cerco i primi nell'intervallo assegnato
 	for(int j=d->start;j<d->end;j++)
-      if(primo(j)) somma++;
-    fprintf(stderr,"Il thread che partiva da %d ha terminato\n",d->start);
-    d->somma_parziale = somma;
-    pthread_exit(NULL);
+      if(primo(j)) primi++;
+  fprintf(stderr, "Il thread che partiva da %d ha terminato\n", d->start);
+  d->somma_parziale = primi;
+  pthread_exit(NULL);
 }
-
 
 int main(int argc,char *argv[])
 {
@@ -75,9 +74,10 @@ bool primo(int n)
   if(n<2) return false;
   if(n%2==0) {
     if(n==2)  return true;
-    else return false; }
+    else return false; 
+  }
   for (int i=3; i*i<=n; i += 2) 
-      if(n%i==0) return false;
+    if(n%i==0) return false;
   return true;
 }
 
