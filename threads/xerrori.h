@@ -61,5 +61,3 @@ int xpthread_mutex_init(pthread_mutex_t *restrict mutex, const pthread_mutexattr
 int xpthread_mutex_destroy(pthread_mutex_t *mutex, int linea, char *file);
 int xpthread_mutex_lock(pthread_mutex_t *mutex, int linea, char *file);
 int xpthread_mutex_unlock(pthread_mutex_t *mutex, int linea, char *file);
-
-

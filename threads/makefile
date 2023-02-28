@@ -2,7 +2,7 @@
 # che vengono usate dalle regole implicite
 CC=gcc
 CFLAGS=-std=c11 -Wall -g -O -pthread
-LDLIBS=-lm -lrt
+LDLIBS=-lm -lrt -pthread
 
 
 # su https://www.gnu.org/software/make/manual/make.html#Implicit-Rules
@@ -16,7 +16,7 @@ LDLIBS=-lm -lrt
 #  $^ viene sostituito con tutti i prerequisiti
 
 # elenco degli eseguibili da creare
-EXECS=contaprimi.out
+EXECS=contaprimi.out contaprimi2.out
 
 # primo target: gli eseguibili sono precondizioni
 # quindi verranno tutti creati
