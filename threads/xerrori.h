@@ -45,6 +45,7 @@ sem_t *xsem_open(const char *name, int oflag, mode_t mode, unsigned int value, i
 int xsem_unlink(const char *name, int linea, char *file);
 int xsem_close(sem_t *sem, int linea, char *file);
 int xsem_init(sem_t *sem, int pshared, unsigned int value, int linea, char *file);
+int xsem_destroy(sem_t *sem, int linea, char *file);
 int xsem_post(sem_t *sem, int linea, char *file);
 int xsem_wait(sem_t *sem, int linea, char *file);
 

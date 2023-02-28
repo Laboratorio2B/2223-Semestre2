@@ -139,6 +139,17 @@ int xmunmap(void *addr, size_t length, int linea, char *file)
 
 
 // ---- semafori POSIX
+
+// IMPORTANTE: i semafori posix sono usati sia da processi che da threads
+// Nel caso dei threads, non è opportuno eseguire in caso di errore exit(1)
+// in quanto questo fa terminare tutti i thread del processo: bisognerebbe
+// chiamare pthread_exit() che fa terminare solo il thread corrente
+// (usare pthread_exit per i processi ugualmente non è accettabile 
+// perché poi invoca exit(0)). 
+// Si potrebbe distinguere thread da processi con gettid(2)
+
+
+// semafori NAMED
 sem_t *xsem_open(const char *name, int oflag, mode_t mode, 
               unsigned int value,  int linea, char *file) {
   sem_t *s = sem_open(name,oflag,mode,value);
@@ -150,7 +161,6 @@ sem_t *xsem_open(const char *name, int oflag, mode_t mode,
   return s;
 }
 
-// chiude un NAMED semaphore 
 int xsem_close(sem_t *s, int linea, char *file)
 {
   int e = sem_close(s);
@@ -173,9 +183,10 @@ int xsem_unlink(const char *name, int linea, char *file)
   return e;  
 }
 
+// semafori UNNAMED
 int xsem_init(sem_t *sem, int pshared, unsigned int value, int linea, char *file) {
   int e = sem_init(sem,pshared,value);
-  if(e == -1) {
+  if(e !=0) {
     perror("Errore sem_init"); 
     fprintf(stderr,"== %d == Linea: %d, File: %s\n",getpid(),linea,file);
     exit(1);
@@ -183,9 +194,20 @@ int xsem_init(sem_t *sem, int pshared, unsigned int value, int linea, char *file
   return e;
 }
 
+int xsem_destroy(sem_t *sem, int linea, char *file) {
+  int e = sem_destroy(sem);
+  if(e !=0) {
+    perror("Errore sem_destroy"); 
+    fprintf(stderr,"== %d == Linea: %d, File: %s\n",getpid(),linea,file);
+    exit(1);
+  }
+  return e;
+}
+
+// comuni NAMED e UNNAMED
 int xsem_post(sem_t *sem, int linea, char *file) {
   int e = sem_post(sem);
-  if(e == -1) {
+  if(e !=0) {
     perror("Errore sem_post"); 
     fprintf(stderr,"== %d == Linea: %d, File: %s\n",getpid(),linea,file);
     exit(1);
@@ -195,7 +217,7 @@ int xsem_post(sem_t *sem, int linea, char *file) {
 
 int xsem_wait(sem_t *sem, int linea, char *file) {
   int e = sem_wait(sem);
-  if(e == -1) {
+  if(e !=0) {
     perror("Errore sem_wait"); 
     fprintf(stderr,"== %d == Linea: %d, File: %s\n",getpid(),linea,file);
     exit(1);
@@ -203,8 +225,14 @@ int xsem_wait(sem_t *sem, int linea, char *file) {
   return e;
 }
 
-// ----- funzioni per thread (non scrivono il codice d'errore in errno) 
 
+
+
+// ----- funzioni per thread: in caso di errore non scrivono 
+// il codice d'errore in errno ma lo restituiscono
+// come return value. Un return value==0 indica nessun errore
+// errno viene evitato perché in certe implementazioni 
+// non è thread-safe (nei linux recenti lo è)
 
 // stampa il messaggio d'errore associato al codice en 
 // in maniera simile a perror
@@ -219,9 +247,8 @@ void xperror(int en, char *msg) {
     fprintf(stderr,"%s\n",errmsg);
 }
 
-// threads 
 
-
+// threads: creazione e join
 
 int xpthread_create(pthread_t *thread, const pthread_attr_t *attr,
                           void *(*start_routine) (void *), void *arg, int linea, char *file) {
@@ -233,7 +260,6 @@ int xpthread_create(pthread_t *thread, const pthread_attr_t *attr,
   }
   return e;                       
 }
-
                           
 int xpthread_join(pthread_t thread, void **retval, int linea, char *file) {
   int e = pthread_join(thread, retval);

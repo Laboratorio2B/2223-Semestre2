@@ -1,16 +1,16 @@
 #include "xerrori.h"
 
-// https://replit.com/join/uwzgqlxxnk-giovannimanzini
 // conteggio dei primi con thread multipli
 
 // NOTA: questo programma ha solo interesse didattico!
 // dal punto di vista delle prestazionei è una pessima idea 
-// utilizzare una sola variabile condivisa a cui i processi 
+// utilizzare una sola variabile condivisa a cui i thread 
 // accedono continuamente. 
 
 // Inoltre in questo caso i thread ausiliari non fanno altre 
 // operazioni dopo il calcolo dei primi quindi il meccanismo 
-// della join si potrebbe utilizzare
+// della join si potrebbe utilizzare per comunicare
+// la terminazione al thread principale
 
 //Prototipi
 bool primo(int n);
@@ -24,6 +24,7 @@ typedef struct {
   int *somma;  // puntatore alla somma condivisa 
 } dati;
 
+// funzione passata a pthred_create
 void *tbody(void *v) {
 	dati *d = (dati *) v;
 	// cerco i primi nell'intervallo assegnato
