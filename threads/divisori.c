@@ -1,9 +1,12 @@
 /*
- * Esempio semplice paradigma produttore consumatori
- * Il produttore legge interi da un file e i consumatori calcolano 
- * la somma dei primi
+ * Esempio paradigma produttore consumatori
+ * in cui abbiamo più di produttore e 
+ * più di consumatore
  * 
- *
+ * I produttori leggono gli interi dai file e li scrivono 
+ * nel buffer, i consumatori calcolano il numero di 
+ * divisori di ogni intero
+ * 
  * */
 #include "xerrori.h"
 
@@ -12,7 +15,7 @@
 #define Buf_size 10
 
 
-// funzione per stabilire se n e' primo  
+// funzione (inefficiente) per contare il numero di divisori 
 int divisori(int n)
 {
   assert(n>0);
@@ -22,7 +25,8 @@ int divisori(int n)
   return d;
 }
 
-// struct contenente i parametri di input e output di ogni thread 
+// struct contenente i parametri di input 
+// per i thread consumatori 
 typedef struct {
   int *buffer; 
   int *pcindex;
@@ -33,7 +37,8 @@ typedef struct {
   FILE *outfile;  
 } dati_consumatori;
 
-
+// struct contenente i parametri di input 
+// per i thread produttori
 typedef struct {
   int *buffer; 
   int *ppindex;
@@ -68,7 +73,7 @@ void *cbody(void *arg)
   pthread_exit(NULL); 
 }     
 
-// funzione eseguita dai thread consumer
+// funzione eseguita dai thread producer
 void *pbody(void *arg)
 {  
   dati_produttori *a = (dati_produttori *)arg; 
@@ -95,6 +100,7 @@ void *pbody(void *arg)
   pthread_exit(NULL); 
 }     
 
+// main: da completare
 int main(int argc, char *argv[])
 {
   // leggi input
@@ -111,7 +117,7 @@ int main(int argc, char *argv[])
   if(outfile==NULL)
     xtermina("impossibile aprire outfile",QUI);
 
-  // buffer produttori consumatori
+  // buffer produttori-consumatori
   int buffer[Buf_size];
   int pindex=0, cindex=0;
   pthread_mutex_t mupbuf = PTHREAD_MUTEX_INITIALIZER;
@@ -122,10 +128,13 @@ int main(int argc, char *argv[])
   xsem_init(&sem_data_items,0,0,__LINE__,__FILE__);
 
   // dati per i thread
-  pthread_t prod[tp];  // thread produttori
-  pthread_t cons[tc];  // thread consumatori 
   dati_produttori ap[tp];
   dati_consumatori ac[tc];
+  pthread_t prod[tp];       // id thread produttori
+  pthread_t cons[tc];       // id thread consumatori 
+
+
+  // Da completare:
 
   // creo tutti i produttori
   // creo tutti i consumatori
