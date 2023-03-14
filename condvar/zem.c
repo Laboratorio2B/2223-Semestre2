@@ -42,7 +42,6 @@ void zem_down(zem *z, int q)
   pthread_mutex_unlock(&z->mutex);
 }
 
-
 // analoga alla sem_post (operazione V di Dijkstra)
 void zem_up(zem *z, int q)
 {

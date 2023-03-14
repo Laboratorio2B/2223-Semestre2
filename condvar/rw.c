@@ -37,7 +37,8 @@ void read_lock(rw *z)
 // fine uso da parte di un reader
 void read_unlock(rw *z)
 {
-  assert(z->readers>0);
+  assert(z->readers>0);  // ci deve essere almeno un reader (me stesso)
+  assert(!z->writing);   // non ci devono essere writer 
   pthread_mutex_lock(&z->mutex);
   z->readers--;                  // cambio di stato       
   if(z->readers==0) 

@@ -9,7 +9,7 @@
 // mutex è sempre bloccato 
 
 // struct che tiene traccia della memoria disponibile e 
-// delle variabili cond/mutex per regolarne l'utilizzo
+// contiene le variabili cond/mutex per regolarne l'utilizzo
 typedef struct {
   pthread_cond_t  *cv; // condition variable
   pthread_mutex_t *mu; // mutex
@@ -84,10 +84,13 @@ int main(int argc, char *argv[])
   
   // esegue i thread
   pthread_t t[nt];
+  // esegue un thread tipo1
   xpthread_create(&t[0],NULL,&tipo1,&h,QUI);
   for(int i=1;i<nt;i++)
+    // esegue nt-1 thread di tipo 2
     xpthread_create(&t[i],NULL,&tipo2,&h,QUI);
 
+  // attende terminazione thread e termina
   for(int i=0;i<nt;i++)
     xpthread_join(t[i],NULL,QUI);
   xpthread_cond_destroy(&c,QUI);
