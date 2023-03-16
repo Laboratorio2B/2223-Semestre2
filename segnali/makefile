@@ -16,7 +16,7 @@ LDLIBS=-lm -lrt -pthread
 #  $^ viene sostituito con tutti i prerequisiti
 
 # elenco degli eseguibili da creare
-EXECS=heap.out divisori.out
+EXECS=segnali.out
 
 # primo target: gli eseguibili sono precondizioni del target
 # quindi verranno tutti creati

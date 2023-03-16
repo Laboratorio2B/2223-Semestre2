@@ -1,7 +1,8 @@
 /*
  * Esempio paradigma produttore consumatori
- * in cui abbiamo più di un produttore e 
- * più di consumatore
+ * in cui abbiamo più di un produttore e più di consumatore
+ * 
+ * Soluzione che utilizza le condition variabiles invece dei semafori
  * 
  * I produttori leggono gli interi dai file e li scrivono 
  * nel buffer, i consumatori calcolano il numero di 
