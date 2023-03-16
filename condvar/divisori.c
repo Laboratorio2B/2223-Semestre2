@@ -11,7 +11,6 @@
  * */
 #include "xerrori.h"
 
-
 #define QUI __LINE__,__FILE__
 #define Buf_size 10
 
@@ -31,11 +30,12 @@ int divisori(int n)
 typedef struct {
   int *buffer; 
   int *pcindex;
-  pthread_mutex_t *pmutex_buf;
-  pthread_mutex_t *pmutex_file;
-  sem_t *sem_free_slots;
-  sem_t *sem_data_items;
+  int *pdati;
+  pthread_mutex_t *mutex;
+  pthread_cond_t *empty;
+  pthread_cond_t *full;
   FILE *outfile;  
+  pthread_mutex_t *mutex_file;
 } dati_consumatori;
 
 // struct contenente i parametri di input 
@@ -43,9 +43,10 @@ typedef struct {
 typedef struct {
   int *buffer; 
   int *ppindex;
-  pthread_mutex_t *pmutex_buf;
-  sem_t *sem_free_slots;
-  sem_t *sem_data_items;
+  int *pdati;
+  pthread_mutex_t *mutex;
+  pthread_cond_t *empty;
+  pthread_cond_t *full;
   char *nomefile;  
 } dati_produttori;
 
@@ -59,17 +60,23 @@ void *cbody(void *arg)
   puts("consumatore partito");
   int n;
   do {
-    xsem_wait(a->sem_data_items,__LINE__,__FILE__);
-    xpthread_mutex_lock(a->pmutex_buf,QUI);
+    xpthread_mutex_lock(a->mutex,QUI);
+    while(*(a->pdati)==0) {
+      // attende fino a quando il buffer è vuoto
+      xpthread_cond_wait(a->empty,a->mutex,QUI);
+    }
     n = a->buffer[*(a->pcindex) % Buf_size];
-    *(a->pcindex) +=1;
-    xpthread_mutex_unlock(a->pmutex_buf,QUI);
-    xsem_post(a->sem_free_slots,__LINE__,__FILE__);
+    *(a->pcindex) += 1;
+    *(a->pdati) -= 1;
+    // segnala che il buffer non è più pieno
+    xpthread_cond_signal(a->full,QUI);
+    xpthread_mutex_unlock(a->mutex,QUI);
+    if(n<0) break; 
     int div = divisori(n);
-    xpthread_mutex_lock(a->pmutex_file,QUI);
+    xpthread_mutex_lock(a->mutex_file,QUI);
     fprintf(a->outfile,"%d %d\n",n,div);
-    xpthread_mutex_unlock(a->pmutex_file,QUI);
-  } while(n!= -1);
+    xpthread_mutex_unlock(a->mutex_file,QUI);
+  } while(true);
   puts("Consumatore sta per finire");
   pthread_exit(NULL); 
 }     
@@ -79,7 +86,7 @@ void *pbody(void *arg)
 {  
   dati_produttori *a = (dati_produttori *)arg; 
 
-  puts("produttore partito");
+  printf("produttore partito sul file: %s\n",a->nomefile);
   // apre il file e termina se non riesce
   FILE *f = fopen(a->nomefile,"rt");
   if(f==NULL) {
@@ -90,18 +97,23 @@ void *pbody(void *arg)
   do {
     int e = fscanf(f,"%d",&n);
     if(e!=1) break;
-    xsem_wait(a->sem_free_slots,QUI);
-    xpthread_mutex_lock(a->pmutex_buf,QUI);
+    xpthread_mutex_lock(a->mutex,QUI);
+    while(*(a->pdati)==Buf_size) {
+      // attende fino a quando il buffer rimane pieno 
+      xpthread_cond_wait(a->full,a->mutex,QUI);
+    }
     a->buffer[*(a->ppindex) % Buf_size] = n;
-    *(a->ppindex) +=1;
-    xpthread_mutex_unlock(a->pmutex_buf,QUI);
-    xsem_post(a->sem_data_items,QUI);
+    *(a->ppindex) += 1;
+    *(a->pdati) += 1;
+    // segnala che il buffer non è più vuoto
+    xpthread_cond_signal(a->empty,QUI);
+    xpthread_mutex_unlock(a->mutex,QUI);
   } while(true);
   puts("produttore sta per finire");
   pthread_exit(NULL); 
 }     
 
-// main: da completare
+
 int main(int argc, char *argv[])
 {
   // leggi input
@@ -120,13 +132,11 @@ int main(int argc, char *argv[])
 
   // buffer produttori-consumatori
   int buffer[Buf_size];
-  int pindex=0, cindex=0;
-  pthread_mutex_t mupbuf = PTHREAD_MUTEX_INITIALIZER;
-  pthread_mutex_t mucbuf = PTHREAD_MUTEX_INITIALIZER;
-  pthread_mutex_t mucfile = PTHREAD_MUTEX_INITIALIZER;
-  sem_t sem_free_slots, sem_data_items;
-  xsem_init(&sem_free_slots,0,Buf_size,__LINE__,__FILE__);
-  xsem_init(&sem_data_items,0,0,__LINE__,__FILE__);
+  int pindex=0, cindex=0, dati=0;
+  pthread_mutex_t mu = PTHREAD_MUTEX_INITIALIZER;
+  pthread_mutex_t mufile = PTHREAD_MUTEX_INITIALIZER;
+  pthread_cond_t empty = PTHREAD_COND_INITIALIZER;
+  pthread_cond_t full = PTHREAD_COND_INITIALIZER;
 
   // dati per i thread
   dati_produttori ap[tp];
@@ -134,19 +144,53 @@ int main(int argc, char *argv[])
   pthread_t prod[tp];       // id thread produttori
   pthread_t cons[tc];       // id thread consumatori 
 
-
-  // Da completare:
-
   // creo tutti i produttori
+  for(int i=0;i<tp;i++) {
+    ap[i].ppindex = &pindex;
+    ap[i].pdati = &dati;
+		ap[i].buffer = buffer;
+    ap[i].mutex = &mu;
+		ap[i].empty = &empty;
+		ap[i].full = &full;
+    ap[i].nomefile = argv[i+1];
+    xpthread_create(&prod[i], NULL, &pbody, &ap[i],QUI);     
+  }
   // creo tutti i consumatori
+  for(int i=0;i<tc;i++) {
+    ac[i].pcindex = &cindex;
+    ac[i].pdati = &dati;
+		ac[i].buffer = buffer;
+    ac[i].mutex = &mu;
+    ac[i].mutex_file = &mufile;
+		ac[i].empty = &empty;
+		ac[i].full = &full;
+    ac[i].outfile = outfile;
+    xpthread_create(&cons[i], NULL, &cbody, &ac[i],QUI);     
+  }
 
   // attendo i produttori
+  for(int i=0;i<tp;i++) 
+    pthread_join(prod[i],NULL);
 
   // comunico ai consumatori che possono terminare
+  for(int i=0;i<tc;i++) {
+    xpthread_mutex_lock(&mu,QUI);
+    while(dati==Buf_size) {
+      xpthread_cond_wait(&full,&mu,QUI);
+    }
+    buffer[pindex % Buf_size] = -1;
+    pindex += 1;
+    dati += 1;
+    xpthread_cond_signal(&empty,QUI);
+    xpthread_mutex_unlock(&mu,QUI);
+  }
   // attendo i consumatori 
-
+  for(int i=0;i<tc;i++) 
+    pthread_join(cons[i],NULL);
   // deallocazione, saluti, etc....
-
+  xpthread_mutex_destroy(&mu,QUI);
+  xpthread_mutex_destroy(&mufile,QUI);
+  xpthread_cond_destroy(&empty,QUI);
+  xpthread_cond_destroy(&full,QUI);
   return 0;
 }
-
