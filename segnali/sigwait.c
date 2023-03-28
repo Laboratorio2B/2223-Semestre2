@@ -1,20 +1,25 @@
 #include "xerrori.h"
 #define QUI __LINE__,__FILE__
 
-// esempio base gestione segnali con sigwait
+// esempio base gestione segnali con 
+// un thread dedicato e la funzione sigwait
 
+
+// struct contente i dati condivisi con il thread 
+// che gestisce i segnaligestore 
 typedef struct {
   int tot_segnali;
   bool continua; 
 } dati;
 
-
+// thread che gestisce i segnali
 void *gbody(void *arg) {
   // recupera argomento passato al thread
   dati *d = (dati *) arg;
   // si mette in attesa di tutti i segnali
   sigset_t mask;
   sigfillset(&mask);
+  sigdelset(&mask,SIGINT);
   int s;
   while(true) {
     int e = sigwait(&mask,&s);
@@ -35,7 +40,7 @@ int main(int argc, char *argv[])
   // blocco tutti i segnali
   sigset_t mask;
   sigfillset(&mask);  // insieme di tutti i segnali
-  // sigdelset(&mask,SIGQUIT); // elimino sigquit
+  sigdelset(&mask,SIGQUIT); // elimino sigquit da mask
   pthread_sigmask(SIG_BLOCK,&mask,NULL); // blocco tutto tranne sigquit
 
   // visualizza il pid

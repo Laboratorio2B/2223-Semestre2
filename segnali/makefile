@@ -16,11 +16,11 @@ LDLIBS=-lm -lrt -pthread
 #  $^ viene sostituito con tutti i prerequisiti
 
 # elenco degli eseguibili da creare
-EXECS=segnali.out
+EXECS=segnali.out sigwait.out
 
 # primo target: gli eseguibili sono precondizioni del target
 # quindi verranno tutti creati
-all: $(EXECS) 
+all: $(EXECS)
 
 
 # regola per la creazioni degli eseguibili utilizzando xerrori.o
