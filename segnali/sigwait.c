@@ -6,7 +6,7 @@
 
 
 // struct contente i dati condivisi con il thread 
-// che gestisce i segnaligestore 
+// che gestisce i segnali
 typedef struct {
   int tot_segnali;
   bool continua; 
