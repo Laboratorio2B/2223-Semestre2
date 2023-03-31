@@ -37,11 +37,11 @@ volatile sig_atomic_t continua =1;
 // handler async-signal safe
 void mysafehandler(int s)
 {
-  char b[] = "Segnale 00 gestito da mysafehandler\n";
+  char b[] = "Segnale XX gestito da mysafehandler\n";
   b[8] = '0' + s/10; // scrivo i codici ascii delle cifre del segnale
-  b[9] = '0' + s%10; // in b[0] e b[1]
+  b[9] = '0' + s%10; // in b[8] e b[9]
   // uso gettid che non è async-signal-safe
-  // int t = gettid(); b[34] = '0' + t%10; b[33] = '0' + (t/10)%10;
+  int t = gettid(); b[34] = '0' + t%10; b[33] = '0' + (t/10)%10;
   int e = write(1,b,36);  // 1 è il file descriptor di stdout
   (void) e;               // evita warning "unused variable"   
   if(s==SIGUSR2)
@@ -99,8 +99,8 @@ int main (void) {
   while (continua) {
       sleep(4);
       // invia segnale USR1 a t[0], t[1], t[2] alternativamente
-      pthread_kill(t[++continua%3],SIGUSR1);
-      // kill(getpid(), SIGUSR1);
+      // pthread_kill(t[++continua%3],SIGUSR1);
+      kill(getpid(), SIGUSR1);
       // puts("main svegliato");
   }
   puts("Uscito dal ciclo");
