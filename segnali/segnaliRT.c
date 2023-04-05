@@ -25,7 +25,7 @@ void *tgestore(void *v) {
   sigset_t mask;
   sigfillset(&mask);
   int s;
-	siginfo_t sinfo;
+  siginfo_t sinfo;
   while(true) {
     int e = sigwaitinfo(&mask,&sinfo);
     if(e<0) perror("Errore sigwaitinfo");
@@ -50,6 +50,7 @@ void *tgestore(void *v) {
 		if (e != 0) xperror(e, "errore pthread_sigqueue");
 
 		v.sival_int++;
+		// nota: raise(SIGINT) equivalente a pthread_kill(pthread_self(),SIGINT);
 		e = raise(SIGRTMIN); // questo segnale non ha un valore associato
 		if (e != 0) perror("errore raise"); // raise salva errore in errno
 
