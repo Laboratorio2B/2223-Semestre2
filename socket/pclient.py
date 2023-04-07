@@ -21,11 +21,14 @@ def main(a,b,host,port):
     data = recv_all(s,4)
     n = struct.unpack("!i",data)[0]
     print("Devo ricevere", n, "primi")
+    # ricevo i byte di tutti i primi e li decodifico
     data = recv_all(s,4*n)
+    # notare l'uso dell'espressione {n} per leggere n interi
     primi = struct.unpack(f"!{n}i",data)
     for p in primi:  
       print(f"{p:>12}") # stampa p right aligned in 12 caratteri
     print("finito")
+    s.shutdown(socket.SHUT_RDWR)
 
 
 # Riceve esattamente n byte dal socket conn e li restituisce
@@ -43,7 +46,7 @@ def recv_all(conn,n):
 
 
 # questo codice viene eseguito solo se il file è eseguito direttamente
-# e non importato come modulo
+# e non importato come modulo con import da un altro file
 if __name__ == '__main__':
   # parsing della linea di comando vedere la guida
   #    https://docs.python.org/3/howto/argparse.html
