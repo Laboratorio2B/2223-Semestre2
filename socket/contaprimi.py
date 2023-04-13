@@ -24,8 +24,7 @@ def tbody(dati):
   logging.debug(f"Inizia esecuzione del thread che parte da {dati.a} e arriva a {dati.b}")
   dati.risultato = conta_primi(dati.a, dati.b)
   logging.debug(f"Termina esecuzione del thread che parte da {dati.a} e arriva a {dati.b}")
-  return
-
+  return dati.risultato
 
 
 def main(a,b):
@@ -33,7 +32,7 @@ def main(a,b):
   # crea 2 thread passando ad ognuno i suoi dati
   c = (a+b)//2
   d1 = Dati(a,c)
-  d2 = Dati(c+1,b)
+  d2 = Dati(c,b)
   t1 = threading.Thread(target=tbody, args=(d1,))
   t2 = threading.Thread(target=tbody, args=(d2,))
   # avvia i thread misurando il tempo di esecuzione
@@ -44,7 +43,7 @@ def main(a,b):
   t2.join()
   end = time.time()
   print(f"Tra {a} e {b} ci sono {d1.risultato+d2.risultato} primi e ci ho messo {end-start:.2f} secondi")
-  logging.debug("Termina esecuzione del main")
+  logging.info("Termina esecuzione del main")
   return
  
 def main2(a,b,p):
@@ -54,14 +53,23 @@ def main2(a,b,p):
   dati = []
   for i in range(p):
     dati.append(Dati(a+(b-a)*i//p, a+(b-a)*(i+1)//p-1))
-  # avvia i thread misurando il tempo di esecuzione  
+  # avvia i thread misurando il tempo di esecuzione 
+  start = time.time() 
+  # se nella riga seguente uso ProcessPoolExecutor invece di ThreadPoolExecutor
+  # vengono lanciati processi invece che thread
   with concurrent.futures.ThreadPoolExecutor(max_workers=p) as executor:
-    start = time.time()
-    executor.map(tbody, dati)
-    end = time.time()
+    # il return value di ogni singola chiamata a tbody viene messo in risultati
+    risultati = executor.map(tbody, dati)
+  # il calcolo del tempo di esecuzione e' da fare fuori dal contesto del with
+  # perché executor.map() termina prima che abbiano terminato tutti i thread
+  end = time.time()
   tot = 0
-  for d in dati:
-    tot += d.risultato
+  for r in risultati:
+    tot += r
+  # metodo di calcolo del risultato quando viene scritto in dati.risultato
+  # non può essere usato per un pool di processi  
+  #for d in dati:
+  #  tot += d.risultato
   print(f"Tra {a} e {b} ci sono {tot} primi e ci ho messo {end-start:.2f} secondi")
   logging.debug("Termina esecuzione di main2")
   return

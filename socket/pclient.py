@@ -54,6 +54,6 @@ if __name__ == '__main__':
   parser.add_argument('min', help='minimo', type = int)  
   parser.add_argument('max', help='massimo', type = int)  
   parser.add_argument('-a', help='host address', type = str, default=HOST)  
-  parser.add_argument('-p', help='post', type = int, default=PORT) 
+  parser.add_argument('-p', help='port', type = int, default=PORT) 
   args = parser.parse_args()
   main(args.min,args.max,args.a,args.p)

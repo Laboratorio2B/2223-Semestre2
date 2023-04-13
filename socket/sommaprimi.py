@@ -11,11 +11,11 @@ logging.basicConfig(filename=os.path.basename(sys.argv[0])[:-3] + '.log',
 
 
 
-# classe usata per rappresentare la somma e il suo lock
+# classe usata per rappresentare la somma e il suo mutex
 class Somma:
   def __init__(self):
     self.somma = 0
-    self.lock = threading.Lock()
+    self.lock = threading.Lock() # questo è l'analogo di un mutex del C
 
 
 # calcola la somma dei primi in [a,b) 
@@ -41,19 +41,12 @@ def main(a,b,p):
     for i in range(p):
       ai = a+(b-a)*i//p
       bi = a+(b-a)*(i+1)//p-1
+      # esempio di uso di submit(): crea un singolo thread 
+      # che esegue la funzione tbody con i parametri ai, bi, somma
       executor.submit(tbody, ai, bi, somma)
   print(f"La somma dei primi in [{a},{b}) e' {somma.somma}") 
   logging.debug("Termina esecuzione di main")
   return
-
-
-# conta i primi in [a,b]
-def conta_primi(a,b):
-  tot = 0
-  for i in range(a,b+1):
-    if primo(i):
-      tot += 1
-  return tot
 
 
 # restituisce lista dei primi in [a,b]
