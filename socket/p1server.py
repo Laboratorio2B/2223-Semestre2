@@ -1,21 +1,19 @@
 #! /usr/bin/env python3
-
-# esempio di server legge due interi e  
-# restituisce l'elenco dei primi tra questi interi
+# server che fornisce l'elenco dei primi in un dato intervallo 
+# invia il byte inutile all'inizio della connessione
 import sys, struct, socket
 
-# specifica da dove accettare le connessioni
-# (valori modificabili dalla linea di comando)
+
+# valori di default per host e port
 HOST = "127.0.0.1"  # interfaccia su cui mettersi in ascolto
 PORT = 65432  # Port to listen on (non-privileged ports are > 1023) 
 
-# main del server
 def main(host=HOST,port=PORT):
   # creiamo il server socket
   with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
     try:
       # permette di riutilizzare la porta se il server viene chiuso
-      server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+      server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)      
       server.bind((host, port))
       server.listen()
       while True:
@@ -25,7 +23,6 @@ def main(host=HOST,port=PORT):
         # lavoro con la connessione appena ricevuta
         # durante la gestione il server non accetta nuove connessioni
         gestisci_connessione(conn,addr)
-    # questa eccezione permette di chiudere il server
     except KeyboardInterrupt:
       pass
     print('Va bene smetto...')
@@ -37,14 +34,21 @@ def main(host=HOST,port=PORT):
 # gestisci una singola connessione
 # con un client
 def gestisci_connessione(conn,addr): 
+  # In questo esempio potrei usare direttamente conn
+  # senza il blocco with, aggiungendo la close in fondo alla funzione
   # L'uso di with serve solo a garantire che
   # conn venga chiusa all'uscita del blocco
-  with conn:  
+  # In generale il blocco with esegue automaticamente 
+  # le necessarie inzializzazioni e il clean-up finale
+  # Per approfondire: https://realpython.com/python-with-statement/
+  with conn:
     print(f"Contattato da {addr}")
-    # ---- attendo due interi da 32 bit, quindi 8 byte in totale
+    # ---- invio un byte inutile (il codice ascii di x) 
+    conn.sendall(b'x')
+    # print("byte inutile inviato")
+    # ---- attendo due interi da 32 bit
     data = recv_all(conn,8)
     assert len(data)==8
-    # ---- decodifico i due interi dal network byte order
     inizio  = struct.unpack("!i",data[:4])[0]
     fine = struct.unpack("!i",data[4:])[0]
     print(f"Ho ricevuto i valori", inizio,fine)
@@ -60,21 +64,19 @@ def gestisci_connessione(conn,addr):
 
 # Riceve esattamente n byte dal socket conn e li restituisce
 # il tipo restituto è "bytes": una sequenza immutabile di valori 0-255
-# Lancia una eccezione se la connessione viene chiusa prima di aver
-# ricevuto tutti i byte
+# Questa funzione è analoga alla readn che abbiamo visto nel C
 def recv_all(conn,n):
   chunks = b''
   bytes_recd = 0
   while bytes_recd < n:
-    # riceve blocchi di al più 1024 byte
     chunk = conn.recv(min(n - bytes_recd, 1024))
     if len(chunk) == 0:
       raise RuntimeError("socket connection broken")
     chunks += chunk
     bytes_recd = bytes_recd + len(chunk)
-    assert bytes_recd == len(chunks)
   return chunks
  
+
 
 # restituisce lista dei primi in [a,b]
 def elenco_primi(a,b):
@@ -83,7 +85,6 @@ def elenco_primi(a,b):
     if primo(i):
       ris.append(i);
   return ris
-
 
 # dato un intero n>0 restituisce True se n e' primo
 # False altrimenti
