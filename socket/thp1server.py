@@ -25,6 +25,7 @@ def main(host=HOST,port=PORT):
   # creiamo il server socket
   with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     try:  
+      # permette di riutilizzare la porta se il server viene chiuso
       s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)            
       s.bind((host, port))
       s.listen()
@@ -33,7 +34,7 @@ def main(host=HOST,port=PORT):
         # mi metto in attesa di una connessione
         conn, addr = s.accept()
         # lavoro con la connessione appena ricevuta
-        # Entrambe queste opzioni per lanciare il thread e fargli
+        # Entrambe queste opzioni per lanciare un thread e fargli
         # eseguire gestisci_connessione(conn,addr) sono accettabili
         t = threading.Thread(target=gestisci_connessione, args=(conn,addr))
         # t = ClientThread(conn,addr)

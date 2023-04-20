@@ -31,7 +31,6 @@ def main(a,b,host=HOST,port=PORT):
     for i in range(n):
       data = recv_all(s,4)
       p = struct.unpack("!i",data)[0]
-      # print("  ", p)
     print(s.getsockname(), "finito")
 
 

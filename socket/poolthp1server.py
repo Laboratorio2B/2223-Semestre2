@@ -22,6 +22,8 @@ def main(host=HOST,port=PORT):
           print("In attesa di un client...")
           # mi metto in attesa di una connessione
           conn, addr = s.accept()
+          # l'esecuzione di submit non è bloccante
+          # fino a quando ci sono thread liberi
           executor.submit(gestisci_connessione, conn,addr)
     except KeyboardInterrupt:
       pass

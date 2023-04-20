@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
   sa.sa_flags = SA_RESTART;     // restart system calls 
   sigaction(SIGUSR1,&sa,NULL);  // handler per USR1
   sigaction(SIGUSR2,&sa,NULL);  // stesso handler per USR2
-  // definisco variabile dove salvo il settaggio attulae per SIGINT
+  // definisco variabile dove salvo il settaggio attuale per SIGINT
   struct sigaction oldsa;
   sigaction(SIGINT,&sa,&oldsa);   // stesso handler per Control-C
 
